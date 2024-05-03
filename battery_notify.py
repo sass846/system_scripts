@@ -39,38 +39,32 @@ def main():
     low_flag = False
     critical_flag = False
     high_flag = False
-    last_notification_time = time.time()
 
     while True:
         capacity = read_battery_capacity()
         ac_status = read_ac_status()
 
-        current_time = time.time()
-        if current_time - last_notification_time > 600:
-            low_flag = False
-            critical_flag = False
-            high_flag = False
-
         if ac_status != prev_ac_status:
             if ac_status == 1:
                 send_notification("Battery charging")
+                high_flag = False
             else:
                 send_notification("Discharging","--urgency=critical")
+                low_flag = False
+                critical_flag = False
 
             prev_ac_status = ac_status
 
-        if capacity < THRESHOLD_LOW and capacity > THRESHOLD_CRITICAL and ac_status == 0 and low_flag==False:
-            send_notification(f"{capacity}% \nBatter low!!!\nPlease plug in your charger.","--urgency=critical",AUDIO_LOW)
+        if capacity < THRESHOLD_LOW and capacity > THRESHOLD_CRITICAL and ac_status == 0 and not low_flag:
+            send_notification(f"{capacity}% \nBattery low!!!\nPlease plug in your charger.","--urgency=critical",AUDIO_LOW)
             low_flag = True
-            last_notification_time = current_time
-        elif capacity < THRESHOLD_CRITICAL and ac_status == 0 and critical_flag==False:
+        elif capacity < THRESHOLD_CRITICAL and ac_status == 0 and not critical_flag:
             send_notification(f"{capacity}% \nBattery critical!!!\nPlease plug in your charger.","--urgency=critical",AUDIO_CRITICAL)
             critical_flag = True
-            last_notification_time = current_time
-        elif capacity > THRESHOLD_HIGH and ac_status == 1 and high_flag==False:
+        elif capacity > THRESHOLD_HIGH and ac_status == 1 and not high_flag:
             send_notification(f"{capacity}% \nBattery high!!!\nPlease unplug your charger.")
             high_flag = True
-            last_notification_time = current_time
+
 
 
 if __name__ == "__main__":
